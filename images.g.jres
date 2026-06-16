@@ -1,0 +1,12 @@
+{
+    "image1": {
+        "data": "hwQIAAgAAADn7u7ud+fu7nfu7u535+7ud+fu7nfu7u537u7ud+7u7g==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "Grass"
+    },
+    "*": {
+        "mimeType": "image/x-mkcd-f4",
+        "dataEncoding": "base64",
+        "namespace": "myImages"
+    }
+}
