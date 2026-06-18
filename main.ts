@@ -20,17 +20,29 @@ function getBlockSprite (blockId: number) {
         return assets.tile`stone`
     } else if (blockId == 4) {
         return assets.tile`bedrock`
+    } else if (blockId == 5) {
+        return assets.tile`log`
+    } else if (blockId == 6) {
+        return assets.tile`leaves`
     } else {
         return assets.tile`missingTexture`
     }
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (selectedBlock >= 4) {
-        selectedBlock = 1
+    if (controller.down.isPressed()) {
+        if (selectedBlock <= 1) {
+            selectedBlock = numberOfBlocks
+        } else {
+            selectedBlock += -1
+        }
     } else {
-        selectedBlock += 1
+        if (selectedBlock >= numberOfBlocks) {
+            selectedBlock = 1
+        } else {
+            selectedBlock += 1
+        }
     }
-    blockPreview.setImage(getBlockSprite(selectedBlock))
+    blockPreviewSprite.setImage(getBlockSprite(selectedBlock))
 })
 controller.anyButton.onEvent(ControllerButtonEvent.Pressed, function () {
     if (controller.dx() > 0) {
@@ -69,13 +81,14 @@ function getMovementDirectionRowOffset () {
     }
 }
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    workingBlockIndex = cursorSprite.tilemapLocation().column * worldHeight + cursorSprite.tilemapLocation().row
-    if (world[workingBlockIndex] == 0) {
-        world[workingBlockIndex] = selectedBlock
+    workingBlockPosition = cursorSprite.tilemapLocation()
+    if (tiles.tileAtLocationIsWall(workingBlockPosition)) {
+        tiles.setTileAt(workingBlockPosition, assets.tile`transparency16`)
+        tiles.setWallAt(workingBlockPosition, false)
     } else {
-        world[workingBlockIndex] = 0
+        tiles.setTileAt(workingBlockPosition, getBlockSprite(selectedBlock))
+        tiles.setWallAt(workingBlockPosition, true)
     }
-    updateWorld()
 })
 controller.down.onEvent(ControllerButtonEvent.Released, function () {
     playerSprite.setImage(assets.image`player`)
@@ -100,67 +113,27 @@ function getMovementDirectionColumnOffset () {
         return 0
     }
 }
-function generateSuperflatWorld () {
-    // The world is defined top to bottom starting on the left. The world height is controlled by worldHeight but should NOT be modified at runtime.
-    world = [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    2,
-    2,
-    4
-    ]
-    world = world.concat(world)
-world = world.concat(world)
-world = world.concat(world)
-world = world.concat(world)
-world = world.concat(world)
-world = world.concat(world)
-world = world.concat(world)
-}
-function updateWorld () {
-    for (let index = 0; index <= world.length - 1; index++) {
-        workingBlockPosition = tiles.getTileLocation(Math.trunc(index / worldHeight), index % worldHeight)
-        tiles.setWallAt(workingBlockPosition, getBlockIsSolid(world[index]))
-        // air
-        tiles.setTileAt(workingBlockPosition, getBlockSprite(world[index]))
-    }
-}
 let workingBlockPosition: tiles.Location = null
-let workingBlockIndex = 0
 let playerOnGround = false
+let numberOfBlocks = 0
 let selectedBlock = 0
-let blockPreview: Sprite = null
+let blockPreviewSprite: Sprite = null
 let cursorSprite: Sprite = null
+let creativeMode = false
 let playerSprite: Sprite = null
-let worldHeight = 0
-let world: number[] = []
+playerSprite = sprites.create(assets.image`player`, SpriteKind.Player)
+if (game.ask("Press A:    Normal world", "Press B: Superflat world")) {
+    tiles.setCurrentTilemap(tilemap`normal`)
+} else {
+    tiles.setCurrentTilemap(tilemap`superflat`)
+}
+if (game.ask("Press A:   Creative Mode", "Press B:   Hardcore Mode")) {
+    creativeMode = true
+} else {
+    creativeMode = false
+    info.setLife(20)
+}
+game.showLongText("Welcome to RoboKraft!\\n- Press left and right buttons to move.\\n- Hold up to Jump.\\n- Hold down to sneak.\\n- Pressing movement buttons moves the cursor automatically.\\n- Press A to place or break blocks.\\n- Press B to switch block.", DialogLayout.Full)
 let movementDirection: MovementDirection
 enum MovementDirection {
     Up, UpLeft, Left, DownLeft, Down, DownRight, Right, UpRight
@@ -287,16 +260,12 @@ scene.setBackgroundImage(img`
     ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
     ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
     `)
-generateSuperflatWorld()
-worldHeight = 32
-playerSprite = sprites.create(assets.image`player`, SpriteKind.Player)
 cursorSprite = sprites.create(assets.image`cursor`, SpriteKind.Cursor)
-blockPreview = sprites.create(getBlockSprite(selectedBlock), SpriteKind.Cursor)
+blockPreviewSprite = sprites.create(getBlockSprite(selectedBlock), SpriteKind.Cursor)
+numberOfBlocks = 6
 playerSprite.ay = 200
-blockPreview.setFlag(SpriteFlag.RelativeToCamera, true)
-blockPreview.setPosition(8, 8)
-tiles.setCurrentTilemap(tilemap`overworld`)
-updateWorld()
+blockPreviewSprite.setFlag(SpriteFlag.RelativeToCamera, true)
+blockPreviewSprite.setPosition(8, 8)
 game.onUpdate(function () {
     if (playerSprite.isHittingTile(CollisionDirection.Bottom)) {
         playerOnGround = true
@@ -304,4 +273,8 @@ game.onUpdate(function () {
     scene.centerCameraAt(playerSprite.x, playerSprite.y)
     controller.moveSprite(playerSprite, 100, 0)
     tiles.placeOnTile(cursorSprite, tiles.getTileLocation(playerSprite.tilemapLocation().column + getMovementDirectionColumnOffset(), playerSprite.tilemapLocation().row + getMovementDirectionRowOffset()))
+    if (playerSprite.tilemapLocation().row >= 31) {
+        game.setGameOverMessage(false, "You fell out of the world!")
+        game.gameOver(false)
+    }
 })
