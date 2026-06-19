@@ -34,6 +34,8 @@ function getBlockSprite (blockId: number) {
         return assets.tile`sand`
     } else if (blockId == 9) {
         return assets.tile`gravel`
+    } else if (blockId == 10) {
+        return assets.tile`planks`
     } else {
         return assets.tile`missingTexture`
     }
@@ -252,13 +254,13 @@ if (game.ask("Press A:    Normal world", "Press B: Superflat world")) {
 } else {
     tiles.setCurrentTilemap(tilemap`superflat`)
 }
-game.showLongText("Welcome to RoboKraft!\\n- Press left and right buttons to move.\\n- Hold up to Jump.\\n- Hold down to sneak.\\n- Pressing movement buttons moves the cursor automatically.\\n- Press A to place or break blocks.\\n- Press B to switch block.", DialogLayout.Full)
+game.showLongText("Welcome to RoboKraft!\\n- Press Left and Right to move.\\n- Hold Up to jump.\\n- Hold Down to sneak.\\n- Pressing movement buttons moves the cursor automatically.\\n- Press A to place or break blocks.\\n- Press B to switch block.", DialogLayout.Full)
 scene.setBackgroundImage(assets.image`backdrop`)
 selectedBlock = 1
 cursorSprite = sprites.create(assets.image`cursor`, SpriteKind.Cursor)
 blockPreviewSprite = sprites.create(getBlockSprite(selectedBlock), SpriteKind.Cursor)
 BlockPreviewOutline = sprites.create(assets.image`selectedBlockOutline`, SpriteKind.Cursor)
-numberOfBlocks = 9
+numberOfBlocks = 10
 tiles.placeOnTile(playerSprite, tiles.getTileLocation(randint(0, 127), 0))
 playerSprite.y += 10
 while (!(tiles.tileAtLocationIsWall(tiles.getTileLocation(playerSprite.tilemapLocation().column, playerSprite.tilemapLocation().row + 1)))) {

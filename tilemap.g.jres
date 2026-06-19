@@ -64,6 +64,12 @@
         "tilemapTile": true,
         "displayName": "gravel"
     },
+    "tile11": {
+        "data": "hwQQABAAAADd7d3t3e3d7d3t3u3d7t3t3u3d7d3t3e7d7d3u3u3e7d3t3e3d7d3t3e3d7d3t3e3d7t3t3e3d7d3t3e3d7d3t3e3d7t3u3e7e7d7t3e3d7d3t3e3d7d7t3e3d7d3t3e3e7d3t3e7d7d3t3u3d7d3u3e7d7d3t3u3d7d3t3u3d7Q==",
+        "mimeType": "image/x-mkcd-f4",
+        "tilemapTile": true,
+        "displayName": "planks"
+    },
     "level1": {
         "id": "level1",
         "mimeType": "application/mkcd-tilemap",
